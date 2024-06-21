@@ -1,0 +1,13 @@
+{
+  "name": "instagram-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot to download and post Instagram images",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.9.0",
+    "dotenv": "^16.0.3"
+  }
+}
