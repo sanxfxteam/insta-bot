@@ -1,29 +1,28 @@
 const { exec } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
+const config = require('../instabotconfig');
 
 async function downloadInstagramProfile(profile) {
-  const outputDir = `/tmp/${profile}`;
+  const outputDir = path.join(config.outputDir, profile);
   
   return new Promise((resolve, reject) => {
-    const instaloader = exec(`instaloader --no-videos --no-metadata-json ${profile} --dirname-pattern ${outputDir}`);
+    const command = `instaloader --no-videos --count=${config.maxImages} ${profile} --dirname-pattern ${outputDir}`;
+    
+    console.log(`Executing command: ${command}`);
 
-    let output = '';
+    const instaloader = exec(command);
 
     instaloader.stdout.on('data', (data) => {
-      output += data.toString();
       console.log(`Instaloader stdout: ${data}`);
     });
 
     instaloader.stderr.on('data', (data) => {
-      output += data.toString();
       console.error(`Instaloader stderr: ${data}`);
     });
 
     instaloader.on('close', async (code) => {
       console.log(`Instaloader process exited with code ${code}`);
-      console.log('Full Instaloader output:');
-      console.log(output);
 
       if (code !== 0) {
         reject(new Error(`Instaloader process exited with code ${code}`));
@@ -33,9 +32,17 @@ async function downloadInstagramProfile(profile) {
       try {
         const files = await fs.readdir(outputDir);
         const images = files.filter(file => file.endsWith('.jpg') || file.endsWith('.png'));
-        const imagePaths = images.map(image => path.join(outputDir, image));
         
-        resolve({ imagePaths, output });
+        // Sort images by creation time (most recent first)
+        const sortedImages = await Promise.all(images.map(async (image) => {
+          const stats = await fs.stat(path.join(outputDir, image));
+          return { name: image, time: stats.mtime.getTime() };
+        }));
+        sortedImages.sort((a, b) => b.time - a.time);
+        
+        const imagePaths = sortedImages.map(image => path.join(outputDir, image.name));
+        
+        resolve({ imagePaths });
       } catch (err) {
         console.error(`Error reading directory: ${err}`);
         reject(err);
