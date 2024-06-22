@@ -1,6 +1,6 @@
 # Instagram Discord Bot
 
-This Discord bot allows users to download and post images from an Instagram profile using the `/insta` command.
+This Discord bot allows users to download and post images from an Instagram profile using the `/insta` command. The bot uses Instaloader to fetch images and is deployed as a Docker container.
 
 ## Prerequisites
 
@@ -16,9 +16,10 @@ This Discord bot allows users to download and post images from an Instagram prof
    cd instagram-discord-bot
    ```
 
-2. Create a `.env` file in the root directory with your Discord bot token:
+2. Create a `.env` file in the root directory with your Discord bot token and client ID:
    ```
    DISCORD_TOKEN=your_discord_bot_token_here
+   CLIENT_ID=your_application_client_id_here
    ```
 
 3. Build the Docker image:
@@ -29,6 +30,36 @@ This Discord bot allows users to download and post images from an Instagram prof
 4. Run the Docker container:
    ```
    docker run -d --name instagram-discord-bot --env-file .env instagram-discord-bot
+   ```
+
+## Discord Bot Setup
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Create a new application or select an existing one.
+3. Go to the "Bot" section and create a bot if you haven't already.
+4. Copy the bot token and add it to your `.env` file.
+5. Go to the "OAuth2" section, then "URL Generator".
+6. Select the following scopes:
+   - bot
+   - applications.commands
+7. Select the following bot permissions:
+   - Send Messages
+   - Attach Files
+   - Use Slash Commands
+8. Copy the generated URL and use it to invite the bot to your server.
+
+## Registering Slash Commands
+
+After setting up the bot, you need to register the slash commands:
+
+1. Install dependencies locally:
+   ```
+   npm install
+   ```
+
+2. Run the command registration script:
+   ```
+   npm run register-commands
    ```
 
 ## Usage
@@ -55,23 +86,30 @@ To run the bot locally for development:
    npm start
    ```
 
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Check the console logs for detailed error messages.
+2. Ensure the bot has the necessary permissions in your Discord server.
+3. Verify that your `.env` file contains the correct Discord token and client ID.
+4. Make sure Instaloader is properly installed in the Docker container.
+
 ## Notes
 
 - This bot uses Instaloader to download Instagram images. Make sure to comply with Instagram's terms of service and respect user privacy.
 - The bot will only download public profiles or profiles that the associated Instagram account has access to.
 - Video downloads are disabled by default to reduce bandwidth usage.
+- The bot splits long Instaloader outputs into multiple messages to comply with Discord's message length limits.
 
 ## License
 
 This project is licensed under the MIT License.
-```
 
-This project creates a Discord bot that can download and post images from an Instagram profile using the `/insta` command. The bot is containerized using Docker for easy deployment.
+## Contributing
 
-To use this bot, you'll need to:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Set up a Discord application and bot account to get the Discord token.
-2. Build the Docker image and run the container with the provided instructions.
-3. Invite the bot to your Discord server and use the `/insta` command.
+## Disclaimer
 
-Remember to handle the Instagram data responsibly and in compliance with Instagram's terms of service.
+This bot is for educational purposes only. Use responsibly and respect Instagram's terms of service and user privacy.
