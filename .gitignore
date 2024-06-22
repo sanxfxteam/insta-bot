@@ -1,4 +1,7 @@
 # .gitignore
+profile_pages/
+node_to_prompt.sh
+project_code.txt
 
 # Dependency directories
 node_modules/
