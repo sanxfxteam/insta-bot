@@ -16,23 +16,29 @@ module.exports = {
     await interaction.deferReply();
     
     try {
-      const images = await downloadInstagramProfile(profile);
+      const { imagePaths, output } = await downloadInstagramProfile(profile);
       
-      if (images.length === 0) {
+      if (imagePaths.length === 0) {
         await interaction.editReply('No images found for this profile.');
         return;
       }
       
-      await interaction.editReply(`Downloading ${images.length} images from ${profile}'s profile...`);
+      await interaction.editReply(`Downloading ${imagePaths.length} images from ${profile}'s profile...`);
       
-      for (const image of images) {
-        await interaction.channel.send({ files: [image] });
-      }
+    const batchSize = 4;
+    const maxImages = 16;
+    const imagesToPost = imagePaths.slice(0, maxImages);
+    
+    for (let i = 0; i < imagesToPost.length; i += batchSize) {
+      const batch = imagesToPost.slice(i, i + batchSize);
+      const files = batch.map(image => ({ attachment: image }));
+      await interaction.followUp({ files });
+    }
       
-      await interaction.followUp(`Finished posting ${images.length} images from ${profile}'s profile.`);
+      await interaction.followUp(`Finished posting ${imagePaths.length} images from ${profile}'s profile.`);
     } catch (error) {
       console.error(error);
-      await interaction.editReply('An error occurred while processing the request.');
+      await interaction.editReply(`An error occurred while processing the request: ${error.message}`);
     }
   },
 };

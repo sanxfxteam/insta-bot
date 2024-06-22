@@ -2,7 +2,8 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const instaCommand = require('./commands/insta');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
