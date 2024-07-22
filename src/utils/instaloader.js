@@ -1,15 +1,41 @@
 const { exec } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
+const chokidar = require('chokidar');
 const config = require('../instabotconfig');
 
-async function downloadInstagramProfile(profile) {
+async function downloadInstagramProfile(profile, onImagesReady) {
   return new Promise((resolve, reject) => {
-    const command = `pipx run instaloader --fast-update --no-videos --count=${config.maxImages} ${profile} --dirname-pattern="${config.outputDir}/{profile}"`;
+    const outputDir = path.join(config.outputDir, profile);
+
+    // Create folder
+    fs.mkdir(outputDir, { recursive: true })
+      .then(() => {
+        console.log(`Created directory: ${outputDir}`);
+      })
+      .catch((error) => {
+        console.error(`Error creating directory: ${outputDir}`);
+        reject(error);
+        return;
+      });
+    
+    const command = `pipx run instaloader --fast-update --no-videos ${profile} --dirname-pattern="${outputDir}"`;
     
     console.log(`Executing command: ${command}`);
 
     const instaloader = exec(command);
+    let totalImagesDetected = 0;
+
+    // Get the list of existing files before starting the download
+    let existingFiles = new Set();
+    fs.readdir(outputDir)
+      .then(files => {
+        existingFiles = new Set(files);
+        console.log(`Existing files: ${[...existingFiles]}`);
+      })
+      .catch(error => {
+        console.error(`Error reading directory: ${error}`);
+      });
 
     instaloader.stdout.on('data', (data) => {
       console.log(`Instaloader stdout: ${data}`);
@@ -19,33 +45,48 @@ async function downloadInstagramProfile(profile) {
       console.error(`Instaloader stderr: ${data}`);
     });
 
+    // Set up a file watcher
+    const watcher = chokidar.watch(outputDir, {
+      ignored: /(^|[\/\\])\../, // ignore dotfiles
+      persistent: true,
+      awaitWriteFinish: true, // Wait until the file has finished being written
+      ignoreInitial: true // Ignore files that already exist
+    });
+
+    let newImages = [];
+
+    watcher
+      .on('add', async (filePath) => {
+        const fileName = path.basename(filePath);
+        if (!existingFiles.has(fileName) && (filePath.endsWith('.jpg') || filePath.endsWith('.png'))) {
+          console.log(`New file detected: ${filePath}`);
+          newImages.push(filePath);
+          totalImagesDetected++;
+          
+          if (newImages.length >= 4) {
+            const imagesToSend = newImages.splice(0, 4);
+            await onImagesReady(imagesToSend);
+          }
+
+          // Check if we've reached the maximum number of images
+          if (totalImagesDetected >= config.maxImages) {
+            console.log(`Reached maximum number of images (${config.maxImages}). Stopping instaloader.`);
+            instaloader.kill();
+          }
+        }
+      })
+      .on('error', error => console.error(`Watcher error: ${error}`));
+
     instaloader.on('close', async (code) => {
       console.log(`Instaloader process exited with code ${code}`);
 
-      if (code !== 0) {
-        reject(new Error(`Instaloader process exited with code ${code}`));
-        return;
+      // Send any remaining images
+      if (newImages.length > 0) {
+        await onImagesReady(newImages);
       }
 
-      try {
-        const outputDir = path.join(config.outputDir, profile);
-        const files = await fs.readdir(outputDir);
-        const images = files.filter(file => file.endsWith('.jpg') || file.endsWith('.png'));
-        
-        // Sort images by creation time (most recent first)
-        const sortedImages = await Promise.all(images.map(async (image) => {
-          const stats = await fs.stat(path.join(outputDir, image));
-          return { name: image, time: stats.mtime.getTime() };
-        }));
-        sortedImages.sort((a, b) => b.time - a.time);
-        
-        const imagePaths = sortedImages.map(image => path.join(outputDir, image.name));
-        
-        resolve({ imagePaths });
-      } catch (err) {
-        console.error(`Error reading directory: ${err}`);
-        reject(err);
-      }
+      watcher.close();
+      resolve(totalImagesDetected);
     });
   });
 }

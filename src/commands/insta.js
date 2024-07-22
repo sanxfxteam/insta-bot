@@ -17,27 +17,21 @@ module.exports = {
     await interaction.deferReply();
 
     try {
-      const { imagePaths, output } = await downloadInstagramProfile(profile);
+      let totalImagesSent = 0;
 
-      if (imagePaths.length === 0) {
-        await interaction.editReply('No images found for this profile.');
-        return;
-      }
-
-      await interaction.editReply(`Downloading ${imagePaths.length} images from ${profile}'s profile...`);
-
-      const batchSize = 4;
-      const maxImages = 16;
-      const imagesToPost = imagePaths.slice(0, maxImages);
-
-      for (let i = 0; i < imagesToPost.length; i += batchSize) {
-        const batch = imagesToPost.slice(i, i + batchSize);
-        const files = batch.map(image => ({ attachment: image }));
+      const onImagesReady = async (imagePaths) => {
+        console.log(`Sending ${imagePaths.length} images...`);
+        const files = imagePaths.map(image => ({ attachment: image }));
         await interaction.followUp({ files });
-      }
+        totalImagesSent += imagePaths.length;
+      };
+
+      await interaction.editReply(`Downloading images from ${profile}'s profile...`);
+
+      await downloadInstagramProfile(profile, onImagesReady);
 
       const profilePageUrl = config.profileUrlPrefix + profile;
-      await interaction.followUp(`Finished posting ${imagePaths.length} images from ${profile}'s profile.\nView the full gallery at: ${profilePageUrl}`);
+      await interaction.followUp(`Finished posting ${totalImagesSent} images from ${profile}'s profile.\nView the full gallery at: ${profilePageUrl}`);
     } catch (error) {
       console.error(error);
       await interaction.editReply(`An error occurred while processing the request: ${error.message}`);
