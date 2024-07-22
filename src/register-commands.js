@@ -11,6 +11,9 @@ const commands = [
       option.setName('profile')
         .setDescription('Instagram profile name')
         .setRequired(true)),
+  new SlashCommandBuilder()
+    .setName('instupdate')
+    .setDescription('Update all Instagram profiles already downloaded'),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
