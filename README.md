@@ -7,8 +7,6 @@ This Discord bot allows users to download and post images from an Instagram prof
 * **Image Download:** Download images from Instagram profiles using the `/insta <profile>` command.
 * **Image Posting:** Automatically posts downloaded images to the channel where the command was issued.
 * **Daily Updates:** The bot remembers requested profiles and automatically fetches the latest images daily at 7 AM PST.
-* **HTML Galleries:** Generates static HTML pages for each profile, showcasing all downloaded images.
-* **Web Interface:** Hosts the HTML galleries on a simple HTTP server, with a home page listing all profiles.
 
 ## Prerequisites
 
