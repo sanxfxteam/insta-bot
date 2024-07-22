@@ -4,10 +4,8 @@ const path = require('path');
 const config = require('../instabotconfig');
 
 async function downloadInstagramProfile(profile) {
-  const outputDir = path.join(config.outputDir, profile);
-  
   return new Promise((resolve, reject) => {
-    const command = `instaloader --no-videos --count=${config.maxImages} ${profile} --dirname-pattern ${outputDir}`;
+    const command = `pipx run instaloader --fast-update --no-videos --count=${config.maxImages} ${profile} --dirname-pattern="${config.outputDir}/{profile}"`;
     
     console.log(`Executing command: ${command}`);
 
@@ -30,6 +28,7 @@ async function downloadInstagramProfile(profile) {
       }
 
       try {
+        const outputDir = path.join(config.outputDir, profile);
         const files = await fs.readdir(outputDir);
         const images = files.filter(file => file.endsWith('.jpg') || file.endsWith('.png'));
         
