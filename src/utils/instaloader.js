@@ -31,7 +31,7 @@ async function downloadInstagramProfile(profile, onImagesReady) {
     fs.readdir(outputDir)
       .then(files => {
         existingFiles = new Set(files);
-        console.log(`Existing files: ${[...existingFiles]}`);
+        // console.log(`Existing files: ${[...existingFiles]}`);
       })
       .catch(error => {
         console.error(`Error reading directory: ${error}`);

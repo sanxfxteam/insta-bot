@@ -1,6 +1,6 @@
 // commands/instupdate.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { updateProfiles } = require('../utils/instaUpdater');
+const { updateProfiles } = require('../utils/instaupdater');
 
 module.exports = {
   data: new SlashCommandBuilder()
