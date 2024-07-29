@@ -4,7 +4,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const instaCommand = require('./commands/insta');
 const instUpdateCommand = require('./commands/instupdate');
 const dlCommand = require('./commands/dl');
-const { updateProfiles } = require('./utils/instaUpdater');
+const { updateProfiles } = require('./utils/instaupdater');
 const schedule = require('node-schedule');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });

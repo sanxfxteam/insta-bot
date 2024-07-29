@@ -36,20 +36,21 @@ module.exports = {
         console.error(`stderr: ${stderr}`);
       }
 
-      const downloadedFile = fs.readdirSync(outputDir).find(file => file.startsWith('video_'));
+      const files = fs.readdirSync(outputDir);
+      const downloadedFile = files
+        .map(file => ({ name: file, ctime: fs.statSync(path.join(outputDir, file)).ctime }))
+        .sort((a, b) => b.ctime - a.ctime)[0]?.name;
       if (downloadedFile) {
         const filePath = path.join(outputDir, downloadedFile);
         const stats = fs.statSync(filePath);
         const fileSizeInMB = stats.size / (1024 * 1024);
+        console.log(`Downloaded video: ${filePath} (${fileSizeInMB}MB)`);
 
         if (fileSizeInMB <= 25) {
           await interaction.editReply({ content: 'Here\'s your downloaded video:', files: [filePath] });
         } else {
-          await interaction.editReply('The downloaded video is larger than 25MB and cannot be sent on Discord.');
+          await interaction.editReply(`The downloaded video is larger than 25MB and cannot be sent on Discord. See video here: ${process.env.VIDEO_URL}`);
         }
-
-        // Clean up the downloaded file
-        fs.unlinkSync(filePath);
       } else {
         await interaction.editReply('No video was downloaded. The file might be larger than 25MB or there was an issue with the download.');
       }
