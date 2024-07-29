@@ -3,6 +3,7 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const instaCommand = require('./commands/insta');
 const instUpdateCommand = require('./commands/instupdate');
+const dlCommand = require('./commands/dl');
 const { updateProfiles } = require('./utils/instaUpdater');
 const schedule = require('node-schedule');
 
@@ -44,6 +45,8 @@ client.on('interactionCreate', async interaction => {
     await instaCommand.execute(interaction);
   } else if (interaction.commandName === 'instupdate') {
     await instUpdateCommand.execute(interaction);
+  } else if (interaction.commandName === 'dl') {
+    await dlCommand.execute(interaction);
   }
 });
 

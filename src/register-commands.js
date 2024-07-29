@@ -14,6 +14,13 @@ const commands = [
   new SlashCommandBuilder()
     .setName('instupdate')
     .setDescription('Update all Instagram profiles already downloaded'),
+  new SlashCommandBuilder()
+    .setName('dl')
+    .setDescription('Download a video from a URL')
+    .addStringOption(option =>
+      option.setName('url')
+        .setDescription('URL of the video to download')
+        .setRequired(true)),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);

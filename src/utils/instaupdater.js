@@ -40,10 +40,7 @@ async function updateProfiles(sendUpdate) {
 
     await sendUpdate(`Updating ${profiles.length} profiles: ${profiles.join(', ')}`);
 
-    // const results = await Promise.all(profiles.map(profile => updateProfile(profile, sendUpdate)));
-    profiles.forEach(async (profile) => {
-      await updateProfile(profile, sendUpdate);
-    });
+    const results = await Promise.all(profiles.map(profile => updateProfile(profile, sendUpdate)));
 
     await sendUpdate('Finished updating all profiles.');
     return results;
