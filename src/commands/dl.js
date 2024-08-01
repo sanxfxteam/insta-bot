@@ -23,7 +23,7 @@ module.exports = {
     }
 
     const outputPath = path.join(outputDir, 'video_%(title)s.%(ext)s');
-    const command = `yt-dlp -o "${outputPath}" "${url}"`;
+    const command = `pipx run yt-dlp -o "${outputPath}" "${url}"`;
     console.log(`Executing command: ${command}`);
 
     exec(command, async (error, stdout, stderr) => {
