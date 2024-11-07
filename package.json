@@ -4,7 +4,7 @@
   "description": "Discord bot to download and post Instagram images",
   "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "npx nodemon src/index.js",
     "start": "node src/index.js",
     "register-commands": "node src/register-commands.js"
   },
