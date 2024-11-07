@@ -4,6 +4,15 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../instabotconfig');
 
+function isValidUrl(string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('dl')
@@ -15,6 +24,12 @@ module.exports = {
 
   async execute(interaction) {
     const url = interaction.options.getString('url');
+    
+    if (!isValidUrl(url)) {
+      await interaction.reply({ content: 'Please provide a valid URL', ephemeral: true });
+      return;
+    }
+
     await interaction.deferReply();
 
     const outputDir = config.outputVideoDir;
@@ -44,10 +59,25 @@ module.exports = {
         const filePath = path.join(outputDir, downloadedFile);
         const stats = fs.statSync(filePath);
         const fileSizeInMB = stats.size / (1024 * 1024);
+        
+        // Extract video title from filename (remove extension)
+        const videoTitle = downloadedFile
+          .replace(/\.[^/.]+$/, "")  // remove file extension
+          .replace("video_", "")     // remove "video_" prefix
+          .replace(/&amp;/g, '&')    // decode common HTML entities
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#039;/g, "'")
+          .replace(/<[^>]*>/g, '')   // remove any HTML tags
+          .replace(/[&<>'"]/g, '');  // remove any remaining special characters
+        // Use original URL for the post link
+        const postUrl = url;
+        
         console.log(`Downloaded video: ${filePath} (${fileSizeInMB}MB)`);
 
         if (fileSizeInMB <= 25) {
-          await interaction.editReply({ content: 'Here\'s your downloaded video:', files: [filePath] });
+          await interaction.editReply({ content: `${videoTitle} ([link](${postUrl}))`, files: [filePath] });
         } else {
           await interaction.editReply(`The downloaded video is larger than 25MB and cannot be sent on Discord. See video here: ${process.env.VIDEO_URL}`);
         }
