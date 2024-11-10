@@ -3,6 +3,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const config = require('../instabotconfig');
+const { uploadToGoogleDrive } = require('../utils/googledrive');
 
 function isValidUrl(string) {
   try {
@@ -14,6 +15,8 @@ function isValidUrl(string) {
 }
 
 module.exports = {
+  isValidUrl,
+  
   data: new SlashCommandBuilder()
     .setName('dl')
     .setDescription('Download a video from a URL')
@@ -80,6 +83,17 @@ module.exports = {
           await interaction.editReply({ content: `${videoTitle} ([link](${postUrl}))`, files: [filePath] });
         } else {
           await interaction.editReply(`The downloaded video is larger than 25MB and cannot be sent on Discord. See video here: ${process.env.VIDEO_URL}`);
+        }
+
+        try {
+          const driveLink = await uploadToGoogleDrive(filePath);
+          await interaction.editReply(`Video uploaded successfully: ${driveLink}`);
+          
+          // Optional: Delete local file after upload
+          fs.unlinkSync(filePath);
+        } catch (error) {
+          console.error('Error uploading to Google Drive:', error);
+          await interaction.editReply('Error uploading to Google Drive: ' + error.message);
         }
       } else {
         await interaction.editReply('No video was downloaded. The file might be larger than 25MB or there was an issue with the download.');
