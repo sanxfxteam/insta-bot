@@ -36,7 +36,7 @@ module.exports = {
 
     await interaction.deferReply();
 
-    const outputDir = config.outputVideoDir;
+    const outputDir = process.env.OUTPUT_VIDEO_DIR;
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }

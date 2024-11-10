@@ -6,7 +6,7 @@ const config = require('../instabotconfig');
 
 async function downloadInstagramProfile(profile, onImagesReady) {
   return new Promise((resolve, reject) => {
-    const outputDir = path.join(config.outputDir, profile);
+    const outputDir = path.join(process.env.INSTA_OUTPUT_DIR, profile);
 
     // Create folder
     fs.mkdir(outputDir, { recursive: true })
@@ -19,7 +19,7 @@ async function downloadInstagramProfile(profile, onImagesReady) {
         return;
       });
     
-    const command = `pipx run instaloader --fast-update --no-videos ${profile} --dirname-pattern="${outputDir}"`;
+    const command = `pipx run instaloader --fast-update ${profile} --dirname-pattern="${outputDir}"`;
     
     console.log(`Executing command: ${command}`);
 
@@ -50,7 +50,11 @@ async function downloadInstagramProfile(profile, onImagesReady) {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
       awaitWriteFinish: true, // Wait until the file has finished being written
-      ignoreInitial: true // Ignore files that already exist
+      ignoreInitial: true, // Ignore files that already exist
+      watchOptions: {
+        usePolling: true,
+        interval: 1000,
+      }
     });
 
     let newImages = [];
@@ -71,7 +75,7 @@ async function downloadInstagramProfile(profile, onImagesReady) {
           // Check if we've reached the maximum number of images
           if (totalImagesDetected >= config.maxImages) {
             console.log(`Reached maximum number of images (${config.maxImages}). Stopping instaloader.`);
-            instaloader.kill();
+            instaloader.kill('SIGHUP');
           }
         }
       })
