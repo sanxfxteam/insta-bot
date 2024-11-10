@@ -9,3 +9,11 @@ test('upload to Google Drive', async () => {
     const result = await uploadToGoogleDrive(filePath);
     assert.equal(isValidUrl(result), true);
 });
+
+const { findOrCreateFolder } = require('../src/utils/googledrive');
+
+test('find or create folder', async () => {
+    const folderName = 'test folder';
+    const result = await findOrCreateFolder(process.env.GOOGLE_DRIVE_FOLDER_ID, folderName);
+    assert.equal(result != '', true);
+});
