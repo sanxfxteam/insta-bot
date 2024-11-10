@@ -2,7 +2,7 @@ const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 
-async function uploadToGoogleDrive(filePath, folderId) {
+async function uploadToGoogleDrive(filePath) {
   // Validate credentials file
   const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (!credentialsPath) {
@@ -31,7 +31,6 @@ async function uploadToGoogleDrive(filePath, folderId) {
   
   console.log('Setting up media');
   const media = {
-    mimeType: 'video/mp4',
     body: fs.createReadStream(filePath)
   };
 

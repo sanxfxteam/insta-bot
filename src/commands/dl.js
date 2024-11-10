@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../instabotconfig');
 const { uploadToGoogleDrive } = require('../utils/googledrive');
+const { hyperlink, hideLinkEmbed, Embed } = require('discord.js');
 
 function isValidUrl(string) {
   try {
@@ -47,7 +48,8 @@ module.exports = {
     exec(command, async (error, stdout, stderr) => {
       if (error) {
         console.error(`Error: ${error.message}`);
-        await interaction.editReply(`An error occurred while downloading: ${error.message}`);
+        await interaction.editReply(`An error occurred. yt-dlp is unable to download the video. Please make sure this is a valid video URL ` 
+          + `from one of the ${hyperlink("supported sites", hideLinkEmbed("https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md"))}`);
         return;
       }
       if (stderr) {
@@ -79,24 +81,20 @@ module.exports = {
         
         console.log(`Downloaded video: ${filePath} (${fileSizeInMB}MB)`);
 
-        if (fileSizeInMB <= 25) {
-          await interaction.editReply({ content: `${videoTitle} ([link](${postUrl}))`, files: [filePath] });
-        } else {
-          await interaction.editReply(`The downloaded video is larger than 25MB and cannot be sent on Discord. See video here: ${process.env.VIDEO_URL}`);
-        }
-
         try {
-          const driveLink = await uploadToGoogleDrive(filePath);
-          await interaction.editReply(`Video uploaded successfully: ${driveLink}`);
-          
-          // Optional: Delete local file after upload
-          fs.unlinkSync(filePath);
+          if (fileSizeInMB <= 25) {
+            await interaction.editReply({ content: `${videoTitle} ([link](${postUrl}))`, files: [filePath] });
+            const driveLink = await uploadToGoogleDrive(filePath);
+          } else {
+            const driveLink = await uploadToGoogleDrive(filePath);
+            await interaction.editReply(`The downloaded video is larger than 25MB and cannot be posted on Discord. See video here: ${driveLink}`);
+          }
         } catch (error) {
           console.error('Error uploading to Google Drive:', error);
           await interaction.editReply('Error uploading to Google Drive: ' + error.message);
         }
       } else {
-        await interaction.editReply('No video was downloaded. The file might be larger than 25MB or there was an issue with the download.');
+        await interaction.editReply('No video was downloaded.');
       }
     });
   },
